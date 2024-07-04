@@ -4,9 +4,9 @@ Coordy is a PaperMC plugin that allows players to add, remove, list, and share i
 
 ## Commands 
 **/coords** *Lists all of a users saved coordinates for them to see.*  
-**/coords add <label>** *Adds the players current coordinates to their list and labels them.*  
-**/coords remove <label>** *Removes the specified coordinate from the list.*  
-**/coords send <player> [label]** *Sends a specific player your current coordinates (or the coordinates specified).*  
+**/coords add \<label>** *Adds the players current coordinates to their list and labels them.*  
+**/coords remove \<label>** *Removes the specified coordinate from the list.*  
+**/coords send \<player> [label]** *Sends a specific player your current coordinates (or the coordinates specified).*  
 **/coords broadcast [label]** *Broadcasts the players current coordinates (or the coordinates specified) to the whole server.*  
 
 ## Other Features 
