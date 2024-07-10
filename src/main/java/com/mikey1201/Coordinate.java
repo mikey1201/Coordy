@@ -1,30 +1,27 @@
 package com.mikey1201;
 
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+
 public class Coordinate {
     private final int x;
     private final int y;
     private final int z;
-    private final String name;
+    private final String label;
 
-    public Coordinate(double x, double y, double z, String name) {
-        this.x = (int) Math.round(x);
-        this.y = (int) Math.round(y);
-        this.z = (int) Math.round(z);
-        this.name = name;
+    public Coordinate(String label, Player player) {
+        this.label = label;
+        Location location = player.getLocation();
+        this.x = (int) Math.round(location.getX());
+        this.y = (int) Math.round(location.getY());
+        this.z = (int) Math.round(location.getZ());
     }
-    public String getName() {
-        return name;
+
+    public String getLabel() {
+        return label;
     }
-    public int getX() {
-        return x;
-    }
-    public int getY() {
-        return y;
-    }
-    public int getZ() {
-        return z;
-    }
+
     public String toString() {
-        return name+" | X: "+x+", Y: "+y+", Z: "+z;
+        return label+" | X: "+x+", Y: "+y+", Z: "+z;
     }
 }

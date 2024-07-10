@@ -4,12 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import org.bukkit.entity.Player;
+
 import java.io.*;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CoordinateManager {
     private static final String FILE_NAME = "coordinates.json";
@@ -22,43 +21,35 @@ public class CoordinateManager {
         loadCoordinatesFromFile();
     }
 
-    public void saveCoordinate(String player, Coordinate coord) {
-        coordinatesMap.computeIfAbsent(player, k -> new ArrayList<>()).add(coord);
-        saveCoordinatesToFile();
-    }
-
-    public List<Coordinate> getCoordinatesList(String player) {
-        return coordinatesMap.getOrDefault(player, new ArrayList<>());
-    }
-
-    public Coordinate getCoordinates(String player, String label) {
-        for (Coordinate coord : getCoordinatesList(player)) {
-            if (coord.getName().equals(label)) {
-                return coord;
-            }
-        }
-        return null;
-    }
-
-    public boolean checkExists(String player, String label) {
-        for (Coordinate coord : getCoordinatesList(player)) {
-            if (coord.getName().equals(label)) {
-                return true;
-            }
+    public static boolean addCoordinate(String label, Player player) {
+        CoordinateManager c = new CoordinateManager();
+        c.coordinatesMap.putIfAbsent(player.getName(), new ArrayList<>());
+        List<Coordinate> coordinates = c.coordinatesMap.get(player.getName());
+        if (coordinates.stream().noneMatch(coordinate -> coordinate.getLabel().equals(label))) {
+            coordinates.add(new Coordinate(label, player));
+            c.saveCoordinatesToFile();
+            return true;
         }
         return false;
     }
 
-    public boolean removeCoordinate(String player, String label) {
-        List<Coordinate> coordinates = coordinatesMap.get(player);
-        if (coordinates != null) {
-            boolean removed = coordinates.removeIf(coord -> coord.getName().equals(label));
-            if (removed) {
-                saveCoordinatesToFile();
-            }
-            return removed;
+    public static boolean removeCoordinate(String label, Player player) {
+        CoordinateManager c = new CoordinateManager();
+        List<Coordinate> coordinates = c.coordinatesMap.get(player.getName());
+        if (coordinates != null && coordinates.stream().anyMatch(coordinate -> coordinate.getLabel().equals(label))) {
+            coordinates.remove(coordinates.stream().filter(coordinate -> coordinate.getLabel().equals(label)).findFirst().get());
+            c.saveCoordinatesToFile();
+            return true;
         }
         return false;
+    }
+
+    public static List<Coordinate> getCoordinatesList(Player player) {
+        return new CoordinateManager().coordinatesMap.getOrDefault(player.getName(), Collections.emptyList());
+    }
+
+    public static Coordinate getCoordinate(Player player, String label) {
+        return getCoordinatesList(player).stream().filter(coordinate -> coordinate.getLabel().equals(label)).findFirst().orElse(null);
     }
 
     private void saveCoordinatesToFile() {
@@ -69,7 +60,7 @@ public class CoordinateManager {
         }
     }
 
-    public void loadCoordinatesFromFile() {
+    private void loadCoordinatesFromFile() {
         try (Reader reader = new FileReader(new File(Coordy.getPlugin().getDataFolder(), FILE_NAME))) {
             Type type = new TypeToken<Map<String, List<Coordinate>>>() {}.getType();
             coordinatesMap = gson.fromJson(reader, type);

@@ -1,1 +1,2 @@
 death-coords-enabled: true
+share-coords-with-all: true #Default permission for /coords share @a : true, false, op, not op

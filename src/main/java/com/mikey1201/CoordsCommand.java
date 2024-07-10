@@ -1,7 +1,5 @@
 package com.mikey1201;
 
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.SuggestionInfo;
 import dev.jorel.commandapi.arguments.*;
@@ -10,12 +8,12 @@ import dev.jorel.commandapi.executors.CommandArguments;
 import net.kyori.adventure.text.Component;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class CoordsCommand {
     public void registerCoordsCommand() {
@@ -23,129 +21,129 @@ public class CoordsCommand {
                 .executes(this::coordsList)
                 .withSubcommand(new CommandAPICommand("add")
                         .withArguments(new GreedyStringArgument("label"))
-                        .executes(this::coordsAdd)
-                )
+                        .executes(this::coordsAdd))
                 .withSubcommand(new CommandAPICommand("remove")
                         .withArguments(new GreedyStringArgument("label")
-                                .replaceSuggestions(this::getLabels))
-                        .executes(this::coordsRemove)
-                )
-                .withSubcommand(new CommandAPICommand("broadcast")
-                        .withArguments(new GreedyStringArgument("label")
-                                .replaceSuggestions(this::getLabels))
-                        .executes(this::coordsBroadcastSpecific)
-                )
-                .withSubcommand(new CommandAPICommand("send")
-                        .withArguments(new PlayerArgument("player"))
-                        .withArguments(new GreedyStringArgument("label")
-                                .replaceSuggestions(this::getLabels))
-                        .executes(this::coordsSendSpecific)
-                )
+                                .replaceSuggestions(ArgumentSuggestions.strings(this::labelSuggestions)))
+                        .executes(this::coordsRemove))
                 .register();
+
         new CommandAPICommand("coords")
-                .withSubcommand(new CommandAPICommand("broadcast")
-                        .executes(this::coordsBroadcastCurrent)
-                )
+                .withSubcommand(new CommandAPICommand("share")
+                        .withArguments(new EntitySelectorArgument.ManyPlayers("player")
+                                .replaceSuggestions(ArgumentSuggestions.strings(this::playerSuggestions)))
+                        .executes(this::coordsShareCurrent))
                 .register();
+
         new CommandAPICommand("coords")
-                .withSubcommand(new CommandAPICommand("send")
-                        .withArguments(new PlayerArgument("player"))
-                        .executes(this::coordsSendCurrent)
-                )
+                .withSubcommand(new CommandAPICommand("share")
+                        .withArguments(new EntitySelectorArgument.ManyPlayers("player")
+                                .replaceSuggestions(ArgumentSuggestions.strings(this::playerSuggestions)))
+                        .withArguments(new GreedyStringArgument("label")
+                                .replaceSuggestions(ArgumentSuggestions.strings(this::labelSuggestions)))
+                        .executes(this::coordsShare))
                 .register();
-
     }
 
-    private CompletableFuture<Suggestions> getLabels(SuggestionInfo<CommandSender> sender, SuggestionsBuilder suggestions) {
-        CoordinateManager c = new CoordinateManager();
-        for (Coordinate coords : c.getCoordinatesList(sender.sender().getName())) {
-            suggestions.suggest(coords.getName());
-        }
-        return suggestions.buildFuture();
-    }
-
-
-    private void coordsList(Object sender, Object args) {
+    private void coordsShareCurrent(Object sender, CommandArguments args) {
         if (sender instanceof Player player) {
-            CoordinateManager c = new CoordinateManager();
-            List<Coordinate> temp = c.getCoordinatesList(player.getName());
-            player.sendMessage(Component.text(player.getName() + "'s coordinates:"));
-            for (Coordinate coords : temp) {
-                player.sendMessage(Component.text(coords.toString()));
-            }
-        }
-    }
-    private void coordsAdd(Object sender, CommandArguments args) {
-        if (sender instanceof Player player) {
-            String label = (String) args.get("label");
-            CoordinateManager c = new CoordinateManager();
-            Location l = player.getLocation();
-            if (c.checkExists(player.getName(), label)) {
-                player.sendMessage(Component.text(label + " already exists."));
+            String rawArg = args.getRaw("player");
+            if (invalidRawArg(Objects.requireNonNull(rawArg), player)) {
+                player.sendMessage(ComponentManager.noPermission(rawArg));
                 return;
             }
-            c.saveCoordinate(player.getName(), new Coordinate(l.getX(), l.getY(), l.getZ(), label));
-            player.sendMessage(Component.text(label + " added."));
+            Coordinate coord = new Coordinate(player.getName()+"'s coordinates", player);
+            share(player, rawArg, coord);
         }
+    }
+
+    private void coordsShare(Object sender, CommandArguments args) {
+        if (sender instanceof Player player) {
+            String rawArg = args.getRaw("player");
+            if (invalidRawArg(Objects.requireNonNull(rawArg), player)) {
+                player.sendMessage(ComponentManager.noPermission(rawArg));
+                return;
+            }
+            String label = args.getRaw("label");
+            Coordinate coord = CoordinateManager.getCoordinate(player, label);
+            if (coord != null) {
+                share(player, rawArg, coord);
+            }
+        }
+    }
+
+    private void share(Player player, String rawArg, Coordinate coord) {
+        if (hasPermission(Objects.requireNonNull(rawArg), player)) {
+            Bukkit.getOnlinePlayers().forEach(pla -> pla.sendMessage(ComponentManager.coordinate(coord)));
+            return;
+        }
+        Player recipient = Bukkit.getPlayer(rawArg);
+        if (recipient == null) {
+            player.sendMessage(ComponentManager.playerNotFound());
+            return;
+        }
+        recipient.sendMessage(ComponentManager.coordinate(coord));
     }
 
     private void coordsRemove(Object sender, CommandArguments args) {
         if (sender instanceof Player player) {
             String label = (String) args.get("label");
-            CoordinateManager c = new CoordinateManager();
-            if (c.removeCoordinate(player.getName(), label)) {
-                player.sendMessage(Component.text(label + " removed."));
+            if (CoordinateManager.removeCoordinate(label, player)) {
+                player.sendMessage(ComponentManager.removeSuccess(label));
             } else {
-                player.sendMessage(Component.text(label + " not found."));
+                player.sendMessage(ComponentManager.removeFailure(label));
             }
         }
     }
 
-    private void coordsBroadcastSpecific(Object sender, CommandArguments args) {
+    private void coordsAdd(Object sender, CommandArguments args) {
         if (sender instanceof Player player) {
             String label = (String) args.get("label");
-            CoordinateManager c = new CoordinateManager();
-            if (c.checkExists(player.getName(), label)) {
-                Bukkit.broadcast(Component.text(c.getCoordinates(player.getName(),label).toString()));
+            if (CoordinateManager.addCoordinate(label, player)) {
+                player.sendMessage(ComponentManager.addSuccess(label));
             } else {
-                player.sendMessage(Component.text(label + " not found."));
+                player.sendMessage(ComponentManager.addFailure(label));
             }
         }
     }
 
-    private void coordsSendSpecific(Object sender, CommandArguments args) {
+    private void coordsList(Object sender, CommandArguments args) {
         if (sender instanceof Player player) {
-            String label = (String) args.get("label");
-            Player recipient = (Player) args.get("player");
-            CoordinateManager c = new CoordinateManager();
-            if (Bukkit.getOnlinePlayers().contains(recipient)) {
-                if (c.checkExists(player.getName(), label)) {
-                    assert recipient != null;
-                    recipient.sendMessage(Component.text(c.getCoordinates(player.getName(),label).toString()));
-                } else {
-                    player.sendMessage(Component.text("No such coordinate."));
-                }
+            List<Coordinate> coords = CoordinateManager.getCoordinatesList(player);
+            if (coords == null) {
+                player.sendMessage(ComponentManager.noCoords());
+            } else if (coords.isEmpty()) {
+                player.sendMessage(ComponentManager.noCoords());
             } else {
-                player.sendMessage(Component.text("Player not found or not online."));
+                player.sendMessage(ComponentManager.coordListHeading(player));
+                coords.forEach(coord -> player.sendMessage(ComponentManager.coordinate(coord)));
             }
         }
     }
 
-    private void coordsBroadcastCurrent(Object sender, CommandArguments args) {
-        if (sender instanceof Player player) {
-            Location l = player.getLocation();
-            Bukkit.broadcast(Component.text(new Coordinate(l.getX(), l.getY(), l.getZ(), player.getName() + "'s coordinates:").toString()));
+    private String[] labelSuggestions(SuggestionInfo<CommandSender> info) {
+        List<Coordinate> coords = CoordinateManager.getCoordinatesList((Player) info.sender());
+        if (coords == null) {
+            return new String[0];
         }
+        return coords.stream().map(Coordinate::getLabel).toArray(String[]::new);
     }
 
-    private void coordsSendCurrent(Object sender, CommandArguments args) {
-        if (sender instanceof Player player) {
-            Player recipient = (Player) args.get("player");
-            Location l = player.getLocation();
-            if (Bukkit.getOnlinePlayers().contains(recipient)) {
-                assert recipient != null;
-                recipient.sendMessage(Component.text(new Coordinate(l.getX(), l.getY(), l.getZ(), player.getName() + "'s coordinates:").toString()));
-            }
+    private String[] playerSuggestions(SuggestionInfo<CommandSender> info) {
+        List<String> suggestions = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+        Player p = (Player) info.sender();
+        if (p.hasPermission("coordy.commands.share.@a")) {
+            suggestions.add("@a");
         }
+        return suggestions.toArray(new String[0]);
+    }
+
+    private boolean hasPermission(String rawArg, Player player) {
+        return Objects.equals(rawArg, "@a") && player.hasPermission("coordy.commands.share.@a");
+    }
+
+    private boolean invalidRawArg(String rawArg, Player player) {
+        boolean isRestrictedArg = rawArg.equals("@e") || rawArg.equals("@r") || rawArg.equals("@s") || rawArg.equals("@p");
+        return (rawArg.equals("@a") && !player.hasPermission("coordy.commands.share.@a")) || isRestrictedArg;
     }
 }
