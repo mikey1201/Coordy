@@ -5,9 +5,6 @@ import dev.jorel.commandapi.SuggestionInfo;
 import dev.jorel.commandapi.arguments.*;
 import dev.jorel.commandapi.executors.CommandArguments;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.audience.Audience;
-
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
