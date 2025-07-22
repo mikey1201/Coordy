@@ -20,6 +20,8 @@ Coordy is a PaperMC plugin that allows players to add, remove, list, and share i
 `/coords share herobrine`  
 **Share specific coordinates with another player**  
 `/coords share herobrine home`  
+> **Note:** The `@a` target selector only works for ops on versions of Paper 1.21.1 and newer.
+
 **Share your current coordinates with the whole server**  
 `/coords share @a`  
 **Share specific coordinates with the whole server**  
@@ -30,6 +32,3 @@ In the configuation files if you set death-coords-enabled to be true then when a
 You can configure the permissions required to use the @a target selector variable with the `/coords share` command by adjusting share-coords-all in the config file.  
 Plugin statistics are recorded with bStats now, to disable this go to plugins\bStats\config.yml .  
 Console log now checks for updates on server start.  
-
-## Thanks to
-[JorelAli - CommandAPI](https://github.com/jorelali/commandapi)
