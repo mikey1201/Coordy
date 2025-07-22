@@ -6,7 +6,7 @@
 
     <groupId>com.mikey1201</groupId>
     <artifactId>Coordy</artifactId>
-    <version>1.6.05</version>
+    <version>1.6.06</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -30,7 +30,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.7-R0.1-SNAPSHOT</version>
+            <version>1.21.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>dev.jorel</groupId>
             <artifactId>commandapi-bukkit-shade</artifactId>
-            <version>10.1.1</version>
+            <version>10.1.2</version>
         </dependency>
 
         <!-- Adventure dependencies provided by the server -->
