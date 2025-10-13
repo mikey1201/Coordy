@@ -8,7 +8,7 @@ Coordy is a PaperMC plugin that allows players to add, remove, list, and share i
 **/coords share \<player> [\<label>]** *Shares your current or chosen coordinates with the selected player.*  
 
 ## Examples 
-**List all of the coordinates you previously saved**  
+**Lists all the coordinates you previously saved**  
 `/coords`  
 **Save your current coordinates to your list as "home"**  
 `/coords add home`  
@@ -28,7 +28,7 @@ Coordy is a PaperMC plugin that allows players to add, remove, list, and share i
 `/coords share @a home`  
 
 ## Other Features 
-In the configuation files if you set death-coords-enabled to be true then when a player dies they will be sent a private message of the coordinates where they died.  
+In the configuration files if you set death-coords-enabled to be true then when a player dies they will be sent a private message of the coordinates where they died.  
 You can configure the permissions required to use the @a target selector variable with the `/coords share` command by adjusting share-coords-all in the config file.  
 Plugin statistics are recorded with bStats now, to disable this go to plugins\bStats\config.yml .  
 Console log now checks for updates on server start.  
