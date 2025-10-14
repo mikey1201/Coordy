@@ -6,7 +6,7 @@
 
     <groupId>com.mikey1201</groupId>
     <artifactId>Coordy</artifactId>
-    <version>1.6.06</version>
+    <version>1.6.07</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -26,39 +26,33 @@
     </repositories>
 
     <dependencies>
-        <!-- Paper API dependency (provided scope) -->
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.8-R0.1-SNAPSHOT</version>
+            <version>1.21.10-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-
-        <!-- CommandAPI dependency (shaded into your plugin) -->
         <dependency>
             <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-bukkit-shade</artifactId>
-            <version>10.1.2</version>
+            <artifactId>commandapi-paper-shade</artifactId>
+            <version>11.0.0</version>
         </dependency>
-
-        <!-- Adventure dependencies provided by the server -->
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
-            <version>4.23.0</version>
+            <version>4.25.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-platform-bukkit</artifactId>
-            <version>4.3.4</version>
+            <version>4.4.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Maven Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -68,8 +62,18 @@
                     <target>17</target>
                 </configuration>
             </plugin>
-
-            <!-- Maven Shade Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <paperweight-mappings-namespace>mojang</paperweight-mappings-namespace>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -82,15 +86,12 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <!-- Exclude net.kyori.adventure packages from shading -->
-                            <!-- So they use the server's Adventure API -->
                             <filters>
                                 <filter>
-                                    <artifact>dev.jorel:commandapi-bukkit-shade</artifact>
+                                    <artifact>dev.jorel:commandapi-bukkit-shade-mojang-mapped</artifact>
                                     <excludes>
-                                        <!-- Exclude any Adventure classes if included -->
-                                        <exclude>net/kyori/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>

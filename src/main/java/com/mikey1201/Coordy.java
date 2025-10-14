@@ -6,6 +6,7 @@ import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import dev.jorel.commandapi.CommandAPILogger;
 
+import dev.jorel.commandapi.CommandAPIPaperConfig;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -23,7 +24,10 @@ public final class Coordy extends JavaPlugin implements CommandExecutor {
     @Override
     public void onLoad() {
         CommandAPI.setLogger(CommandAPILogger.fromJavaLogger(getLogger()));
-        CommandAPI.onLoad(new CommandAPIBukkitConfig(this).verboseOutput(true).dispatcherFile(new File(getDataFolder(),"command_registration.json")));
+        CommandAPI.onLoad(new CommandAPIPaperConfig(this)
+                .verboseOutput(true)
+                .dispatcherFile(new File(getDataFolder(), "command_registration.json"))
+        );
     }
     /*TODO:
         add configuration options
@@ -38,7 +42,7 @@ public final class Coordy extends JavaPlugin implements CommandExecutor {
         //TODO: More robust logging
         plugin = this;
 
-        UpdateChecker.checkForUpdates(this, "https://raw.githubusercontent.com/mikey1201/Coordy/main/Version");
+        UpdateChecker.checkForUpdates(this, "https://raw.githubusercontent.com/mikey1201/Coordy/refs/heads/main/Version");
 
         saveDefaultConfig();
 
