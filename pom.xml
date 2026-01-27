@@ -6,7 +6,7 @@
 
     <groupId>com.mikey1201</groupId>
     <artifactId>Coordy</artifactId>
-    <version>1.6.07</version>
+    <version>1.6.08</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>dev.jorel</groupId>
             <artifactId>commandapi-paper-shade</artifactId>
-            <version>11.0.0</version>
+            <version>11.1.0</version>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
@@ -88,13 +88,12 @@
                         <configuration>
 
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <filters>
-                                <filter>
-                                    <artifact>dev.jorel:commandapi-bukkit-shade-mojang-mapped</artifact>
-                                    <excludes>
-                                    </excludes>
-                                </filter>
-                            </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>dev.jorel.commandapi</pattern>
+                                    <shadedPattern>com.mikey1201.coordy.shaded.commandapi</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -102,4 +101,3 @@
         </plugins>
     </build>
 </project>
-
